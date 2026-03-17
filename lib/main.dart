@@ -7,6 +7,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers.dart';
 import 'models.dart';
+import 'widgets.dart';
+import 'utils.dart';
 
 void main() {
   runApp(const ProviderScope(child: StravaApp()));
@@ -103,20 +105,6 @@ class _StravaAppState extends ConsumerState<StravaApp>
 
   void backToHistory() {
     ref.read(stravaProvider.notifier).backToHistory();
-  }
-
-  String _formatTime(int seconds) {
-    int h = seconds ~/ 3600;
-    int m = (seconds % 3600) ~/ 60;
-    int s = seconds % 60;
-    return "${h.toString().padLeft(2, "0")}:${m.toString().padLeft(2, "0")}:${s.toString().padLeft(2, "0")}";
-  }
-
-  String _formatDistance(double meters) {
-    if (meters >= 1000) {
-      return "${(meters / 1000).toStringAsFixed(2)} km";
-    }
-    return "${meters.toStringAsFixed(0)} m";
   }
 
   @override
@@ -454,23 +442,24 @@ class _StravaAppState extends ConsumerState<StravaApp>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildLiveStat(
-                            _formatDistance(stravaState.totalDistance),
-                            'DISTANCE',
-                            CupertinoColors.systemGreen,
-                            CupertinoIcons.arrow_up_bin,
+                          LiveStat(
+                            value: formatDistance(stravaState.totalDistance),
+                            label: 'DISTANCE',
+                            color: CupertinoColors.systemGreen,
+                            icon: CupertinoIcons.arrow_up_bin,
                           ),
-                          _buildLiveStat(
-                            _formatTime(stravaState.elapsedSeconds),
-                            'TIME',
-                            CupertinoColors.systemBlue,
-                            CupertinoIcons.timer,
+                          LiveStat(
+                            value: formatTime(stravaState.elapsedSeconds),
+                            label: 'TIME',
+                            color: CupertinoColors.systemBlue,
+                            icon: CupertinoIcons.timer,
                           ),
-                          _buildLiveStat(
-                            '${stravaState.averageSpeed.toStringAsFixed(1)} km/h',
-                            'AVG SPEED',
-                            CupertinoColors.systemPurple,
-                            CupertinoIcons.speedometer,
+                          LiveStat(
+                            value:
+                                '${stravaState.averageSpeed.toStringAsFixed(1)} km/h',
+                            label: 'AVG SPEED',
+                            color: CupertinoColors.systemPurple,
+                            icon: CupertinoIcons.speedometer,
                           ),
                         ],
                       ),
@@ -500,22 +489,23 @@ class _StravaAppState extends ConsumerState<StravaApp>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildDetailStat(
-                            _formatDistance(
+                          DetailStat(
+                            value: formatDistance(
                               stravaState.selectedActivity!.distance,
                             ),
-                            'DISTANCE',
-                            CupertinoColors.systemGreen,
+                            label: 'DISTANCE',
+                            color: CupertinoColors.systemGreen,
                           ),
-                          _buildDetailStat(
-                            stravaState.selectedActivity!.formattedTime,
-                            'TIME',
-                            CupertinoColors.systemBlue,
+                          DetailStat(
+                            value: stravaState.selectedActivity!.formattedTime,
+                            label: 'TIME',
+                            color: CupertinoColors.systemBlue,
                           ),
-                          _buildDetailStat(
-                            '${stravaState.selectedActivity!.averageSpeed.toStringAsFixed(1)} km/h',
-                            'AVG SPEED',
-                            CupertinoColors.systemPurple,
+                          DetailStat(
+                            value:
+                                '${stravaState.selectedActivity!.averageSpeed.toStringAsFixed(1)} km/h',
+                            label: 'AVG SPEED',
+                            color: CupertinoColors.systemPurple,
                           ),
                         ],
                       ),
@@ -588,7 +578,7 @@ class _StravaAppState extends ConsumerState<StravaApp>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (stravaState.isPaused)
-                          _buildControlButton(
+                          ControlButton(
                             icon: CupertinoIcons.play_fill,
                             color: CupertinoColors.systemGreen,
                             onPressed: resumeTracking,
@@ -596,7 +586,7 @@ class _StravaAppState extends ConsumerState<StravaApp>
                           )
                         else if (stravaState.isTracking &&
                             !stravaState.isPaused)
-                          _buildControlButton(
+                          ControlButton(
                             icon: CupertinoIcons.pause_fill,
                             color: CupertinoColors.systemYellow,
                             onPressed: pauseTracking,
@@ -612,7 +602,7 @@ class _StravaAppState extends ConsumerState<StravaApp>
                           ),
 
                         if (stravaState.isTracking)
-                          _buildControlButton(
+                          ControlButton(
                             icon: CupertinoIcons.stop_fill,
                             color: CupertinoColors.systemRed,
                             onPressed: stopTracking,
@@ -710,31 +700,31 @@ class _StravaAppState extends ConsumerState<StravaApp>
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
-                                  _buildHistoryStat(
-                                    'Activities',
-                                    stravaState.activityHistory.length
+                                  HistoryStat(
+                                    value: stravaState.activityHistory.length
                                         .toString(),
-                                    CupertinoColors.activeOrange,
+                                    label: 'Activities',
+                                    color: CupertinoColors.activeOrange,
                                   ),
-                                  _buildHistoryStat(
-                                    'Total Distance',
-                                    _formatDistance(
+                                  HistoryStat(
+                                    value: formatDistance(
                                       stravaState.activityHistory.fold(
                                         0.0,
                                         (sum, item) => sum + item.distance,
                                       ),
                                     ),
-                                    CupertinoColors.systemGreen,
+                                    label: 'Total Distance',
+                                    color: CupertinoColors.systemGreen,
                                   ),
-                                  _buildHistoryStat(
-                                    'Total Time',
-                                    _formatTime(
+                                  HistoryStat(
+                                    value: formatTime(
                                       stravaState.activityHistory.fold(
                                         0,
                                         (sum, item) => sum + item.duration,
                                       ),
                                     ),
-                                    CupertinoColors.systemBlue,
+                                    label: 'Total Time',
+                                    color: CupertinoColors.systemBlue,
                                   ),
                                 ],
                               ),
@@ -1081,25 +1071,28 @@ class _StravaAppState extends ConsumerState<StravaApp>
                             ),
                             child: Column(
                               children: [
-                                _buildSummaryRow(
-                                  CupertinoIcons.arrow_up_bin,
-                                  'Total Distance',
-                                  _formatDistance(stravaState.totalDistance),
-                                  CupertinoColors.systemGreen,
+                                SummaryRow(
+                                  icon: CupertinoIcons.arrow_up_bin,
+                                  label: 'Total Distance',
+                                  value: formatDistance(
+                                    stravaState.totalDistance,
+                                  ),
+                                  color: CupertinoColors.systemGreen,
                                 ),
                                 const SizedBox(height: 16),
-                                _buildSummaryRow(
-                                  CupertinoIcons.timer,
-                                  'Total Time',
-                                  _formatTime(stravaState.elapsedSeconds),
-                                  CupertinoColors.systemBlue,
+                                SummaryRow(
+                                  icon: CupertinoIcons.timer,
+                                  label: 'Total Time',
+                                  value: formatTime(stravaState.elapsedSeconds),
+                                  color: CupertinoColors.systemBlue,
                                 ),
                                 const SizedBox(height: 16),
-                                _buildSummaryRow(
-                                  CupertinoIcons.speedometer,
-                                  'Average Speed',
-                                  '${stravaState.averageSpeed.toStringAsFixed(1)} km/h',
-                                  CupertinoColors.systemPurple,
+                                SummaryRow(
+                                  icon: CupertinoIcons.speedometer,
+                                  label: 'Average Speed',
+                                  value:
+                                      '${stravaState.averageSpeed.toStringAsFixed(1)} km/h',
+                                  color: CupertinoColors.systemPurple,
                                 ),
                               ],
                             ),
@@ -1245,253 +1238,9 @@ class _StravaAppState extends ConsumerState<StravaApp>
     );
   }
 
-  Widget _buildDetailStat(String value, String label, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: CupertinoColors.white.withOpacity(0.6),
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHistoryStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: CupertinoColors.white.withOpacity(0.6),
-            fontSize: 12,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLiveStat(
-    String value,
-    String label,
-    Color color,
-    IconData icon,
-  ) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: CupertinoColors.white.withOpacity(0.6),
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildControlButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onPressed,
-    required String label,
-  }) {
-    return CupertinoButton(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      onPressed: onPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryRow(
-    IconData icon,
-    String label,
-    String value,
-    Color color,
-  ) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: CupertinoColors.white.withOpacity(0.9),
-              fontSize: 16,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
-}
-
-class RoutePainter extends CustomPainter {
-  final List<LatLng> route;
-
-  RoutePainter(this.route);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (route.isEmpty) return;
-
-    final paint = Paint()
-      ..color = CupertinoColors.activeOrange
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    // Find bounds with padding
-    double minLat = route.first.latitude;
-    double maxLat = route.first.latitude;
-    double minLng = route.first.longitude;
-    double maxLng = route.first.longitude;
-
-    for (var p in route) {
-      minLat = p.latitude < minLat ? p.latitude : minLat;
-      maxLat = p.latitude > maxLat ? p.latitude : maxLat;
-      minLng = p.longitude < minLng ? p.longitude : minLng;
-      maxLng = p.longitude > maxLng ? p.longitude : maxLng;
-    }
-
-    // Add 10% padding
-    double latPadding = (maxLat - minLat) * 0.1;
-    double lngPadding = (maxLng - minLng) * 0.1;
-    minLat -= latPadding;
-    maxLat += latPadding;
-    minLng -= lngPadding;
-    maxLng += lngPadding;
-
-    double latRange = maxLat - minLat;
-    double lngRange = maxLng - minLng;
-
-    ui.Path path = ui.Path();
-
-    for (int i = 0; i < route.length; i++) {
-      double x = ((route[i].longitude - minLng) / lngRange) * size.width;
-      double y = ((route[i].latitude - minLat) / latRange) * size.height;
-
-      y = size.height - y;
-
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-
-    canvas.drawPath(path, paint);
-
-    // Draw start marker
-    Paint startPaint = Paint()
-      ..color = CupertinoColors.systemGreen
-      ..style = PaintingStyle.fill;
-
-    double startX = ((route.first.longitude - minLng) / lngRange) * size.width;
-    double startY =
-        size.height -
-        ((route.first.latitude - minLat) / latRange) * size.height;
-    canvas.drawCircle(Offset(startX, startY), 6, startPaint);
-
-    // Draw white border for start marker
-    Paint startBorder = Paint()
-      ..color = CupertinoColors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawCircle(Offset(startX, startY), 6, startBorder);
-
-    // Draw end marker
-    Paint endPaint = Paint()
-      ..color = CupertinoColors.systemRed
-      ..style = PaintingStyle.fill;
-
-    double endX = ((route.last.longitude - minLng) / lngRange) * size.width;
-    double endY =
-        size.height - ((route.last.latitude - minLat) / latRange) * size.height;
-    canvas.drawCircle(Offset(endX, endY), 6, endPaint);
-
-    // Draw white border for end marker
-    Paint endBorder = Paint()
-      ..color = CupertinoColors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawCircle(Offset(endX, endY), 6, endBorder);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
