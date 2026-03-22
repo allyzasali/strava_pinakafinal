@@ -1,3 +1,0 @@
-String formatTime(int seconds) {
-  }
-}
